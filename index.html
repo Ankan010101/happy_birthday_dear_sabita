@@ -1,9 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Birthday Heart Animation | @coding.stella</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Happy Birthday ❤️</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="file/default.css">
     <script type="text/javascript" src="file/jquery.min.js"></script>
     <script type="text/javascript" src="file/jscex.min.js"></script>
@@ -14,43 +18,99 @@
     <script type="text/javascript" src="file/jscex-async-powerpack.min.js"></script>
     <script type="text/javascript" src="file/function.js" charset="utf-8"></script>
     <script type="text/javascript" src="file/love.js" charset="utf-8"></script>
-    <script>
-        function playAudio() {
-            var audio = document.getElementById("myAudio");
-            audio.play();
-        }
-    </script>
 </head>
 
 <body>
     <div id="main">
-        <div id="error"><a
-                href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html?hl=zh-CN&brand=CHMI">Chrome</a> (<a
-                href="http://firefox.com.cn/download/">Firefox</a>)</div>
-        <audio autoplay="autoplay" height="100" width="100" id="myAudio">
+        <!-- Rotate hint for mobile portrait -->
+        <div id="rotate-hint" class="rotate-hint">
+            <span>📱 Rotate phone for full-screen view 🔄</span>
+        </div>
+
+        <div id="error">
+            Your browser does not support canvas. Please view in Chrome, Safari, or Firefox.
+        </div>
+
+        <!-- Background music -->
+        <audio id="myAudio" loop="loop" preload="auto">
             <source src="aud.mp3" type="audio/mp3" />
-            <embed height="100" width="100" src="aud.mp3" />
         </audio>
-        <div id="wrap">
-            <div id="text">
-                <div id="code">
-                    <span class="say">Hey you 💞</span><br>
-                    <span class="say">Happy Birthday 🎈</span><br>
-                    <span class="say">May God bless you 🍀</span><br>
-                    <span class="say">And give u many happiness 💕</span><br>
-                    <span class="say">Just saying... you're pretty awesome ❤️</span><br>
-                    <span class="say">Sending good vibes and maybe a wink 😏</span><br>
-                    <span class="say">Hope u have a great day today ❤️😘</span><br>
+
+        <!-- Floating music play/pause toggle button -->
+        <button id="music-toggle" class="music-toggle" title="Play / Pause Music">
+            <span id="music-icon">🎵</span>
+        </button>
+
+        <!-- Dynamic scaling container -->
+        <div id="wrap-outer">
+            <div id="wrap">
+                <div id="text">
+                    <div id="code">
+                        <span class="say">Hey you 💞</span><br>
+                        <span class="say">Happy Birthday 🎈</span><br>
+                        <span class="say">May God bless you 🍀</span><br>
+                        <span class="say">And give u many happiness 💕</span><br>
+                        <span class="say">Just saying... you're pretty awesome ❤️</span><br>
+                        <span class="say">Sending good vibes and maybe a wink 😏</span><br>
+                        <span class="say">Hope u have a great day today ❤️😘</span><br>
+                    </div>
                 </div>
+                <div id="clock-box">
+                    <span id="clock">577 days 0 hours 0 minutes 0 seconds</span>
+                </div>
+                <canvas id="canvas" width="1100" height="680"></canvas>
             </div>
-            <div id="clock-box">
-                <span id="clock">577 days 0 hours 0 minutes 0 seconds</span> <!-- Change to "6940 days..." if needed -->
-            </div>
-            <canvas id="canvas" width="1100" height="680"></canvas>
+        </div>
+
+        <!-- Touch/Click hint -->
+        <div id="mobile-hint" class="mobile-hint">
+            <span>👆 Tap the heart to start 💖</span>
         </div>
     </div>
 
     <script>
+        function playAudio() {
+            var audio = document.getElementById("myAudio");
+            if (audio) {
+                var playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(function() {
+                        $('#music-toggle').addClass('playing');
+                        $('#music-icon').text('🎵');
+                    }).catch(function (e) {
+                        console.log("Audio playback prevented or error:", e);
+                    });
+                }
+            }
+        }
+
+        function toggleMusic() {
+            var audio = document.getElementById("myAudio");
+            if (!audio) return;
+            if (audio.paused) {
+                audio.play().then(function() {
+                    $('#music-toggle').addClass('playing');
+                    $('#music-icon').text('🎵');
+                }).catch(function(e) {
+                    console.log(e);
+                });
+            } else {
+                audio.pause();
+                $('#music-toggle').removeClass('playing');
+                $('#music-icon').text('🔇');
+            }
+        }
+
+        $('#music-toggle').on('click touchstart', function(e) {
+            e.stopPropagation();
+            toggleMusic();
+        });
+
+        // First user gesture triggers audio priming
+        $(window).one('touchstart click', function() {
+            playAudio();
+        });
+
         (function () {
             var canvas = $('#canvas');
 
@@ -59,10 +119,63 @@
                 return false;
             }
 
-            var width = canvas.width();
-            var height = canvas.height();
+            var width = 1100;
+            var height = 680;
             canvas.attr("width", width);
             canvas.attr("height", height);
+
+            // Responsive scale management
+            var currentScale = 1;
+            function getOptimalScale() {
+                var winW = $(window).width();
+                var winH = $(window).height();
+                var isLandscape = winW > winH;
+
+                if (winW >= 1150 && winH >= 720) {
+                    return 1.0;
+                }
+
+                if (isLandscape) {
+                    var scaleW = (winW - 20) / 1100;
+                    var scaleH = (winH - 40) / 680;
+                    return Math.min(scaleW, scaleH);
+                } else {
+                    var scale = (winW - 10) / 1100;
+                    return Math.min(scale, 1.0);
+                }
+            }
+
+            function updateScale() {
+                currentScale = getOptimalScale();
+                $('#wrap').css({
+                    'transform': 'scale(' + currentScale + ')',
+                    '-webkit-transform': 'scale(' + currentScale + ')'
+                });
+                var scaledHeight = 680 * currentScale;
+                $('#wrap-outer').css('height', scaledHeight + 'px');
+            }
+
+            updateScale();
+            $(window).on('resize orientationchange', function() {
+                updateScale();
+            });
+
+            function getCanvasCoords(e) {
+                var rect = canvas[0].getBoundingClientRect();
+                var clientX, clientY;
+                if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length > 0) {
+                    clientX = e.originalEvent.touches[0].clientX;
+                    clientY = e.originalEvent.touches[0].clientY;
+                } else if (e.clientX !== undefined) {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                } else {
+                    return { x: 550, y: 600 };
+                }
+                var x = (clientX - rect.left) * (1100 / rect.width);
+                var y = (clientY - rect.top) * (680 / rect.height);
+                return { x: x, y: y };
+            }
 
             var opts = {
                 seed: {
@@ -98,29 +211,42 @@
                     height: 5,
                     speed: 10,
                 }
-            }
+            };
 
             var tree = new Tree(canvas[0], width, height, opts);
             var seed = tree.seed;
             var foot = tree.footer;
             var hold = 1;
 
-            canvas.click(function (e) {
+            function triggerStart(e) {
                 playAudio();
-                var offset = canvas.offset(), x, y;
-                x = e.pageX - offset.left;
-                y = e.pageY - offset.top;
-                if (seed.hover(x, y)) {
+                var coords = getCanvasCoords(e);
+                var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 768);
+
+                if (isTouch || seed.hover(coords.x, coords.y)) {
                     hold = 0;
-                    canvas.unbind("click");
-                    canvas.unbind("mousemove");
+                    canvas.off("click touchstart");
+                    canvas.off("mousemove");
                     canvas.removeClass('hand');
+                    $("#mobile-hint").fadeOut(300);
                 }
-            }).mousemove(function (e) {
-                var offset = canvas.offset(), x, y;
-                x = e.pageX - offset.left;
-                y = e.pageY - offset.top;
-                canvas.toggleClass('hand', seed.hover(x, y));
+            }
+
+            canvas.on("click touchstart", triggerStart);
+
+            $('#mobile-hint').on("click touchstart", function (e) {
+                e.preventDefault();
+                playAudio();
+                hold = 0;
+                canvas.off("click touchstart");
+                canvas.off("mousemove");
+                canvas.removeClass('hand');
+                $("#mobile-hint").fadeOut(300);
+            });
+
+            canvas.mousemove(function (e) {
+                var coords = getCanvasCoords(e);
+                canvas.toggleClass('hand', seed.hover(coords.x, coords.y));
             });
 
             var seedAnimate = eval(Jscex.compile("async", function () {
