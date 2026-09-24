@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Happy Birthday ❤️</title>
+    <title>Happy Birthday Dear Sabita ❤️</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,9 +22,13 @@
 
 <body>
     <div id="main">
-        <!-- Rotate hint for mobile portrait -->
-        <div id="rotate-hint" class="rotate-hint">
-            <span>📱 Rotate phone for full-screen view 🔄</span>
+        <!-- Floating background hearts -->
+        <div class="bg-hearts" id="bg-hearts"></div>
+
+        <!-- Birthday Header -->
+        <div class="birthday-header">
+            <span class="header-badge">✨ Special Day ✨</span>
+            <h1 class="header-title">Happy Birthday, Sabita! 💖</h1>
         </div>
 
         <div id="error">
@@ -47,7 +51,7 @@
                 <div id="text">
                     <div id="code">
                         <span class="say">Hey you 💞</span><br>
-                        <span class="say">Happy Birthday 🎈</span><br>
+                        <span class="say">Happy Birthday to you dear sabita 🎈</span><br>
                         <span class="say">May God bless you 🍀</span><br>
                         <span class="say">And give u many happiness 💕</span><br>
                         <span class="say">Just saying... you're pretty awesome ❤️</span><br>
@@ -69,6 +73,22 @@
     </div>
 
     <script>
+        // Generate delicate floating hearts in background
+        (function() {
+            var container = document.getElementById('bg-hearts');
+            var icons = ['❤️', '💕', '💖', '✨', '🌸', '🎈'];
+            for (var i = 0; i < 18; i++) {
+                var heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.innerText = icons[Math.floor(Math.random() * icons.length)];
+                heart.style.left = (Math.random() * 96) + '%';
+                heart.style.animationDuration = (8 + Math.random() * 10) + 's';
+                heart.style.animationDelay = (Math.random() * 8) + 's';
+                heart.style.fontSize = (14 + Math.random() * 18) + 'px';
+                container.appendChild(heart);
+            }
+        })();
+
         function playAudio() {
             var audio = document.getElementById("myAudio");
             if (audio) {
@@ -124,35 +144,47 @@
             canvas.attr("width", width);
             canvas.attr("height", height);
 
-            // Responsive scale management
+            // Responsive scale management: fills mobile screen properly
             var currentScale = 1;
-            function getOptimalScale() {
+            function updateScale() {
                 var winW = $(window).width();
                 var winH = $(window).height();
-                var isLandscape = winW > winH;
 
-                if (winW >= 1150 && winH >= 720) {
-                    return 1.0;
+                if (winW >= 1150) {
+                    // Desktop view
+                    var scale = Math.min((winW - 60) / 1100, (winH - 120) / 680, 1.05);
+                    scale = Math.max(scale, 0.85);
+                    currentScale = scale;
+                    $('#wrap').css({
+                        'transform': 'scale(' + scale + ')',
+                        '-webkit-transform': 'scale(' + scale + ')',
+                        'transform-origin': 'center center',
+                        'left': '0px'
+                    });
+                    $('#wrap-outer').css('height', (680 * scale) + 'px');
+                    return;
                 }
 
-                if (isLandscape) {
-                    var scaleW = (winW - 20) / 1100;
-                    var scaleH = (winH - 40) / 680;
-                    return Math.min(scaleW, scaleH);
-                } else {
-                    var scale = (winW - 10) / 1100;
-                    return Math.min(scale, 1.0);
+                // Mobile / Tablet screens:
+                // Focus on the 920px active area (x=130 to 1050)
+                var targetW = 930;
+                var scale = winW / targetW;
+                var maxScaleByHeight = (winH - 130) / 680;
+                if (scale > maxScaleByHeight && maxScaleByHeight > 0.35) {
+                    scale = maxScaleByHeight;
                 }
-            }
+                currentScale = scale;
 
-            function updateScale() {
-                currentScale = getOptimalScale();
+                // Center the active content area:
+                var shiftX = -40 * scale;
+
                 $('#wrap').css({
-                    'transform': 'scale(' + currentScale + ')',
-                    '-webkit-transform': 'scale(' + currentScale + ')'
+                    'transform': 'scale(' + scale + ')',
+                    '-webkit-transform': 'scale(' + scale + ')',
+                    'transform-origin': 'center center',
+                    'left': shiftX + 'px'
                 });
-                var scaledHeight = 680 * currentScale;
-                $('#wrap-outer').css('height', scaledHeight + 'px');
+                $('#wrap-outer').css('height', (680 * scale) + 'px');
             }
 
             updateScale();
